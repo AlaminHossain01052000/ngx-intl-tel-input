@@ -37,7 +37,7 @@
         <li class="iti__divider" *ngIf="preferredCountriesInDropDown?.length"></li>
         <li
           class="iti__country iti__standard"
-          *ngFor="let country of allCountries"
+          *ngFor="let country of filteredCountries"
           (click)="onCountrySelect(country, focusable)"
           [id]="country.htmlId"
         >

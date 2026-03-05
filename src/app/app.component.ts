@@ -15,7 +15,7 @@ export class AppComponent {
   SearchCountryField = SearchCountryField;
   CountryISO = CountryISO;
   PhoneNumberFormat = PhoneNumberFormat;
-  preferredCountries: CountryISO[] = [CountryISO.UnitedStates, CountryISO.UnitedKingdom];
+  preferredCountries: CountryISO[] = [];
   phoneForm = new FormGroup({
     phone: new FormControl(undefined, [Validators.required]),
   });

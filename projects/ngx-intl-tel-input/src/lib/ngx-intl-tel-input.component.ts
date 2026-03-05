@@ -80,6 +80,7 @@ export class NgxIntlTelInputComponent implements OnInit, OnChanges {
   phoneNumber: string | undefined = '';
   allCountries: Array<Country> = [];
   preferredCountriesInDropDown: Array<Country> = [];
+  filteredCountries: Array<Country> = []; 
   // Has to be 'any' to prevent a need to install @types/google-libphonenumber by the package user...
   phoneUtil: any = lpn.PhoneNumberUtil.getInstance();
   disabled = false;
@@ -128,6 +129,7 @@ export class NgxIntlTelInputComponent implements OnInit, OnChanges {
     if (this.onlyCountries.length) {
       this.allCountries = this.allCountries.filter(c => this.onlyCountries.includes(c.iso2));
     }
+    this.filteredCountries = this.allCountries.slice();
     if (this.selectFirstCountry) {
       if (this.preferredCountriesInDropDown.length) {
         this.setSelectedCountry(this.preferredCountriesInDropDown[0]);
@@ -148,61 +150,37 @@ export class NgxIntlTelInputComponent implements OnInit, OnChanges {
    * Search country based on country name, iso2, dialCode or all of them.
    */
   public searchCountry() {
-    if (!this.countrySearchText) {
-      this.countryList.nativeElement.querySelector('.iti__country-list li').scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'nearest',
-      });
-      return;
-    }
-    const countrySearchTextLower = this.countrySearchText.toLowerCase();
-    // @ts-ignore
-    const country = this.allCountries.filter(c => {
-      if (this.searchCountryField.indexOf(SearchCountryField.All) > -1) {
-        // Search in all fields
-        if (c.iso2.toLowerCase().startsWith(countrySearchTextLower)) {
-          return c;
-        }
-        if (c.name.toLowerCase().startsWith(countrySearchTextLower)) {
-          return c;
-        }
-        if (c.dialCode.startsWith(this.countrySearchText)) {
-          return c;
-        }
-      } else {
-        // Or search by specific SearchCountryField(s)
-        if (this.searchCountryField.indexOf(SearchCountryField.Iso2) > -1) {
-          if (c.iso2.toLowerCase().startsWith(countrySearchTextLower)) {
-            return c;
-          }
-        }
-        if (this.searchCountryField.indexOf(SearchCountryField.Name) > -1) {
-          if (c.name.toLowerCase().startsWith(countrySearchTextLower)) {
-            return c;
-          }
-        }
-        if (this.searchCountryField.indexOf(SearchCountryField.DialCode) > -1) {
-          if (c.dialCode.startsWith(this.countrySearchText)) {
-            return c;
-          }
-        }
-      }
+  const text = (this.countrySearchText || '').trim().toLowerCase();
+
+  if (!text) {
+    // reset list
+    this.filteredCountries = this.allCountries.slice();
+
+    // optional: scroll to top of list
+    setTimeout(() => {
+      this.countryList?.nativeElement
+        ?.querySelector('.iti__country-list li')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     });
 
-    if (country.length > 0) {
-      const el = this.countryList.nativeElement.querySelector('#' + country[0].htmlId);
-      if (el) {
-        el.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'nearest',
-        });
-      }
-    }
-
     this.checkSeparateDialCodeStyle();
+    return;
   }
+
+  // ✅ name-only includes search
+  this.filteredCountries = this.allCountries.filter(c =>
+    c.name.toLowerCase().includes(text)
+  );
+
+  // ✅ ensure results appear from top
+  setTimeout(() => {
+    this.countryList?.nativeElement
+      ?.querySelector('.iti__country-list li')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  });
+
+  this.checkSeparateDialCodeStyle();
+}
 
   public onPhoneNumberChange(): void {
     let countryCode: string | undefined;
@@ -474,6 +452,7 @@ export class NgxIntlTelInputComponent implements OnInit, OnChanges {
 
       this.allCountries.push(country);
     });
+    this.filteredCountries = this.allCountries.slice();
   }
 
   /**
